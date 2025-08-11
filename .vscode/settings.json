@@ -1,0 +1,12 @@
+{
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "files.autoSave": "afterDelay",
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "typescript.format.semicolons": "remove",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.preferences.importModuleSpecifier": "relative"
+}
