@@ -1,0 +1,6 @@
+export * from './types'
+export { TableComponent } from './table.component'
+export { TableLocators } from './table.locators'
+export { TableColumn } from './column'
+export { BaseTableFeature } from './features/base'
+export { ColumnSortFeature } from './features/sort'
