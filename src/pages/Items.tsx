@@ -82,13 +82,11 @@ export default function Items() {
     <div style={{ display: 'flex', padding: '1rem' }}>
       {/* Filters */}
       <div 
+        className='container'
         style={{ 
           minWidth: '200px',
           marginRight: '1rem',
-          border: '1px solid #ccc', 
           padding: '1rem',
-          borderRadius: '8px',
-          backgroundColor: '#f8f8f8',
           minHeight: '80vh',
         }}
       >
@@ -189,12 +187,7 @@ export default function Items() {
         >
           {filteredItems.map((item, idx) => (
             <div 
-              style={{ 
-                border: '1px solid #ccc', 
-                padding: '1rem',
-                borderRadius: '8px',
-                backgroundColor: '#f8f8f8',
-              }}
+              className='container item-card'
               data-testid="item-card"
               key={idx}
             >
@@ -208,8 +201,7 @@ export default function Items() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
-                  borderRadius: '8px',
-                  backgroundColor: '#f8f8f8',
+                  borderRadius: 'inherit',
                 }}
               >
                 <img

@@ -21,7 +21,9 @@ export default function App() {
             <NavLink
               to={item.to}
               data-testid={item.testId}
-              className={({ isActive }) => (isActive ? 'nav nav-active' : 'nav')}
+              style={({ isActive }) => ({
+                textDecoration: isActive ? 'underline' : 'none',
+              })}
             >
               {item.label}
             </NavLink>
