@@ -9,6 +9,7 @@ export default function Home() {
       <ul>
         <li><strong>/</strong> — this page</li>
         <li><strong>/table</strong> — table with sortable columns</li>
+        <li><strong>/items</strong> — items list with filters</li>
       </ul>
 
       <p>
