@@ -166,6 +166,7 @@ export default function Items() {
         {/* Reset Filters */}
         <div style={{ marginTop: '1rem' }}>
           <button
+            data-testid='reset-filters'
             onClick={resetFilters}
           >
             Reset Filters
