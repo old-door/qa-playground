@@ -4,11 +4,13 @@ import TablePage from './pages/TablePage'
 import Items from './pages/Items'
 import './index.css'
 import React from 'react'
+import ChartPage from './pages/ChartPage'
 
 const navItems = [
   { to: '/', label: 'Home', testId: 'nav-home' },
   { to: '/table', label: 'Table', testId: 'nav-table' },
   { to: '/items', label: 'Items', testId: 'nav-items' },
+  { to: '/chart', label: 'Chart', testId: 'nav-paint' },
 ]
 
 export default function App() {
@@ -36,6 +38,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/table" element={<TablePage />} />
           <Route path="/items" element={<Items />} />
+          <Route path="/chart" element={<ChartPage />} />
         </Routes>
       </main>
     </div>

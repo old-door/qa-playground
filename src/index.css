@@ -11,6 +11,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --axis-color: #e0e0e0;
+  --text-color: #e0e0e0;
 }
 
 a {
@@ -73,12 +75,49 @@ input[type="number"]:focus {
   box-shadow: 0 0 4px rgba(163, 191, 250, 0.5);
 }
 
+.canvas-container,
 .container {
   border: 1px solid #333;
-  padding: 1rem;
   border-radius: 8px;
   background-color: #222;
   color: #e0e0e0;
+}
+
+.container {
+  padding: 1rem;
+}
+
+.tooltip {
+  border: 1px solid #333;
+  background-color: #222;
+  color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.context-menu {
+  border: 1px solid #333;
+  background-color: #222;
+  color: #e0e0e0;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.context-menu-option {
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px;
+  background-color: #222;
+  color: #e0e0e0;
+}
+.context-menu-option:hover {
+  background-color: #2e2e2e;
+}
+.context-menu-option:active {
+  background-color: #444;
 }
 
 .item-card {
@@ -98,6 +137,8 @@ input[type="number"]:focus {
   :root {
     color: #213547;
     background-color: #ffffff;
+    --axis-color: #213547;
+    --text-color: #213547;
   }
   body {
     color: #213547;
@@ -127,7 +168,7 @@ input[type="number"]:focus {
   }
   button:active {
   outline: 4px auto -webkit-focus-ring-color;
-  background-color: #eee;
+  background-color: #ddd;
   }
 
   input[type="checkbox"],
@@ -148,13 +189,28 @@ input[type="number"]:focus {
     box-shadow: 0 0 4px rgba(100, 108, 255, 0.5);
   }
 
+  .context-menu,
+  .tooltip,
+  .canvas-container,
   .container {
-    border-color: #ccc;
+    border: 1px solid #ccc;
     background-color: #f8f8f8;
     color: #213547;
   }
-  .item-card:hover {
+
+  .context-menu-option {
+    background-color: #f8f8f8;
+    color: #213547;
+  }
+
+  .context-menu-option:hover {
     background-color: #f0f0f0;
+  }
+  .context-menu-option:active {
+    background-color: #ddd;
+  }
+
+  .item-card:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 }
