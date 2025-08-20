@@ -30,9 +30,20 @@ npm run dev
 npm run test
 ```
 
-## Pages
-* / – Intro text about the playground.
-* /table – Table with multiple column types, sortable with a three-click reset.
+## 🧩 Available playground pages
+/ – Introductory text about the playground.
+
+/table – A sortable table with multiple column types.
+
+/items – An item catalog with various filters.
+
+/chart – A page with a chart (canvas) showing item values and labels.
+
+## 🧪 Available test examples
+* [Sorting](tests/specs/sortable-table.spec.ts)
+* [Filtering](tests/specs/filterable-items.spec.ts)
+* [Visual comparison](tests/specs/chart.spec.ts)
+* [Canvas functional testing](tests/specs/chart.spec.ts)
 
 ## 🤝 Contributing
 Pull requests with new QA case examples are welcome!
