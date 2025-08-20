@@ -8,8 +8,9 @@ export default function Home() {
       <p>Routes:</p>
       <ul>
         <li><strong>/</strong> — this page</li>
-        <li><strong>/table</strong> — table with sortable columns</li>
-        <li><strong>/items</strong> — items list with filters</li>
+        <li><strong>/table</strong> — A sortable table with multiple column types.</li>
+        <li><strong>/items</strong> — An item catalog with various filters.</li>
+        <li><strong>/chart</strong> — A page with a chart (canvas) showing item values and labels.</li>
       </ul>
 
       <p>

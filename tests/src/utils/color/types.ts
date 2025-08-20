@@ -1,6 +1,6 @@
-import { Locator, PageScreenshotOptions } from '@playwright/test'
+import { Locator } from '@playwright/test'
 
-export interface FindColorCoordinatesOptions extends PageScreenshotOptions {
+export interface FindColorCoordinatesOptions {
   /**
    * The target color in `rgb(r, g, b)` format.
    */
@@ -22,7 +22,7 @@ export interface FindColorCoordinatesOptions extends PageScreenshotOptions {
   };
 
   /**
-   * The specific locator to search within.
+   * The specific canvas locator to search within.
    */
   locator: Locator;
 
@@ -61,8 +61,19 @@ export interface FindColorCoordinatesOptions extends PageScreenshotOptions {
    *   - **Best Use Case:** When colors are expected to align horizontally.
    *   - **Advantages:** Suitable for elements arranged in rows.
    *   - **Limitations:** Inefficient if colors are scattered.
+   * 
+   *  `adaptiveStep`:
+   *   - **Pattern Logic:** Performs a coarse search with a step size (e.g., every 5th pixel) to quickly cover the area,
+   *     then refines the search in a small region around the coarse match.
+   *   - **Best Use Case:** Large images or when the color location is unknown.
+   *   - **Advantages:** Significantly reduces the number of pixels checked, making it faster for large canvases.
+   *   - **Limitations:** May miss single-pixel targets if the step size is too large.
    */
-  searchPattern?: 'spiral' | 'horizontal' | 'vertical';
+  searchPattern?: 'spiral' | 'horizontal' | 'vertical' | 'adaptiveStep';
+  /**
+   * `adaptiveStep` step size. Defaults to 5
+   */
+  stepSize?: number
 }
 
 export interface ColorSearchPatternOptions {

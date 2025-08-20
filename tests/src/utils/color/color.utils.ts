@@ -1,4 +1,4 @@
-import { expect, PageScreenshotOptions } from '@playwright/test'
+import { expect } from '@playwright/test'
 import sharp from 'sharp'
 import { test } from '../../fixtures'
 import { ColorSearchPatternOptions, FindColorCoordinatesOptions, RgbaColor, RgbColor } from './types'
@@ -51,7 +51,7 @@ function rgbToLab(rgb: RgbColor): [number, number, number] {
 export function stringToRgb(rgbString: string): RgbaColor {
   const rgbRgbaRegex = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/
   const match = rgbString.match(rgbRgbaRegex)!
-  expect(match, `Expect color: "${rgbString}" to have valid RGB/RGBA format`).toBeTruthy()
+  expect(match, `${rgbString} to match RGB/RGBA format`).toBeTruthy()
 
   const r = parseInt(match[1], 10)
   const g = parseInt(match[2], 10)
@@ -81,36 +81,35 @@ export function findColorCoordinates(
     },
     locator,
     colorDiffThreshold = 6,
-    searchPattern = 'spiral',
+    searchPattern = 'adaptiveStep',
+    stepSize
   } = options ?? {}
 
   return test.step(`Find color: "${targetColorRgb}" coords`, async () => {
     const targetColor = stringToRgb(targetColorRgb)
-    const screenshotOptions: PageScreenshotOptions = {
-      scale: 'css',
-      maskColor: `rgb(${255 - targetColor.r}, ${255 - targetColor.g}, ${255 - targetColor.b})`,
-      ...options,
-    }
-
     // Get bounding box of the element
     const boundingBox = (await locator.boundingBox())!
     expect(boundingBox, `Locator bounding box not to be null`).not.toBeNull()
 
-    const screenshotBuffer: Buffer = await locator.screenshot(screenshotOptions)
+    const dataURL = await locator.evaluate((element) => {
+      const canvas = element as HTMLCanvasElement
+      return canvas.toDataURL('image/png') // PNG as Data URL
+    })
 
-    const offsetX = boundingBox.x
-    const offsetY = boundingBox.y
-    const width = boundingBox.width
-    const height = boundingBox.height
+    // Data URL -> Buffer
+    const buffer = Buffer.from(dataURL.split(',')[1], 'base64')
+
+    const { data: imageData, info } = await sharp(buffer)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+
+    const width = info.width
+    const height = info.height
     const paddingXLeft = Math.floor(width * ((paddingPercent.left ?? 0) / 100))
     const paddingXRight = Math.floor(width * ((paddingPercent.right ?? 0) / 100))
     const paddingYTop = Math.floor(height * ((paddingPercent.top ?? 0) / 100))
     const paddingYBottom = Math.floor(height * ((paddingPercent.bottom ?? 0) / 100))
-
-    const { data: imageData } = await sharp(screenshotBuffer)
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true })
 
     const searchPatternOptions: ColorSearchPatternOptions = {
       imageData,
@@ -122,8 +121,8 @@ export function findColorCoordinates(
       startY: Math.max(paddingYTop, 0),
       endX: width - paddingXRight,
       endY: height - paddingYBottom,
-      offsetX,
-      offsetY,
+      offsetX: boundingBox.x,
+      offsetY: boundingBox.y,
     }
 
     switch (searchPattern) {
@@ -133,6 +132,8 @@ export function findColorCoordinates(
         return verticalSearchPattern(searchPatternOptions)
       case 'horizontal':
         return horizontalSearchPattern(searchPatternOptions)
+      case 'adaptiveStep':
+        return adaptiveStepSearchPattern({...searchPatternOptions, stepSize})
       default:
         return null
     }
@@ -151,17 +152,7 @@ export function findColorCoordinates(
  */
 function spiralSearchPattern(options: ColorSearchPatternOptions) {
   const {
-    imageData,
-    targetColor,
-    width,
-    height,
-    startX,
-    endX,
-    startY,
-    endY,
-    offsetX,
-    offsetY,
-    colorDiffThreshold,
+    imageData, targetColor, width, height, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold,
   } = options
   const directions = [
     { x: 1, y: 0 }, // Right
@@ -224,8 +215,9 @@ function spiralSearchPattern(options: ColorSearchPatternOptions) {
  * @returns A promise resolving to the coordinates `{ x, y }` if the color is found, or `null` if not found.
  */
 function horizontalSearchPattern(options: ColorSearchPatternOptions) {
-  const { imageData, targetColor, width, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold } =
-			options
+  const { 
+    imageData, targetColor, width, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold 
+  } = options
   for (let y = startY; y < endY; y++) {
     for (let x = startX; x < endX; x++) {
       const index = (y * width + x) * 4 // 4 bytes per pixel (RGBA)
@@ -255,8 +247,9 @@ function horizontalSearchPattern(options: ColorSearchPatternOptions) {
  * @returns A promise resolving to the coordinates `{ x, y }` if the color is found, or `null` if not found.
  */
 function verticalSearchPattern(options: ColorSearchPatternOptions) {
-  const { imageData, targetColor, width, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold } =
-			options
+  const { 
+    imageData, targetColor, width, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold 
+  } = options
   for (let x = startX; x < endX; x++) {
     for (let y = startY; y < endY; y++) {
       const index = (y * width + x) * 4 // 4 bytes per pixel (RGBA)
@@ -272,5 +265,73 @@ function verticalSearchPattern(options: ColorSearchPatternOptions) {
       }
     }
   }
+  return null
+}
+
+/**
+ * Adaptive Step pattern color search:
+ *   - **Pattern Logic:** Performs a coarse search with a step size (e.g., every 5th pixel) to quickly cover the area,
+ *     then refines the search in a small region around the coarse match.
+ *   - **Best Use Case:** Large images or when the color location is unknown.
+ *   - **Advantages:** Significantly reduces the number of pixels checked, making it faster for large canvases.
+ *   - **Limitations:** May miss single-pixel targets if the step size is too large.
+ * @param options
+ * @see ColorSearchPatternOptions
+ * @returns A promise resolving to the coordinates `{ x, y }` if the color is found, or `null` if not found.
+ */
+function adaptiveStepSearchPattern(options: ColorSearchPatternOptions & {stepSize?: number, }) {
+  const {
+    imageData, targetColor, width, startX, endX, startY, endY, offsetX, offsetY, colorDiffThreshold, 
+    stepSize = 5
+  } = options
+
+  // Step size for coarse search (adjust based on image size)
+  const step = Math.max(stepSize, Math.floor(Math.sqrt((endX - startX) * (endY - startY)) / 100))
+
+  // Step 1: Coarse search with step size
+  let coarseMatch: { x: number; y: number } | null = null
+  for (let y = startY; y < endY; y += step) {
+    for (let x = startX; x < endX; x += step) {
+      const index = (y * width + x) * 4
+      const color = {
+        r: imageData[index],
+        g: imageData[index + 1],
+        b: imageData[index + 2],
+        a: imageData[index + 3],
+      }
+      const diff = deltaE(color, targetColor)
+      if (diff < colorDiffThreshold) {
+        coarseMatch = { x, y }
+        break
+      }
+    }
+    if (coarseMatch) break
+  }
+
+  // Step 2: If coarse match found, refine search in a small region
+  if (coarseMatch) {
+    const refineRadius = step * 2 // Search within 2x step size around coarse match
+    const refineStartX = Math.max(startX, coarseMatch.x - refineRadius)
+    const refineEndX = Math.min(endX, coarseMatch.x + refineRadius)
+    const refineStartY = Math.max(startY, coarseMatch.y - refineRadius)
+    const refineEndY = Math.min(endY, coarseMatch.y + refineRadius)
+
+    for (let y = refineStartY; y < refineEndY; y++) {
+      for (let x = refineStartX; x < refineEndX; x++) {
+        const index = (y * width + x) * 4
+        const color = {
+          r: imageData[index],
+          g: imageData[index + 1],
+          b: imageData[index + 2],
+          a: imageData[index + 3],
+        }
+        const diff = deltaE(color, targetColor)
+        if (diff < colorDiffThreshold) {
+          return { x: x + offsetX, y: y + offsetY }
+        }
+      }
+    }
+  }
+
   return null
 }
