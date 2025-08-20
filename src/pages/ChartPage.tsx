@@ -344,7 +344,7 @@ export default function ChartPage() {
       <div style={{ marginBottom: '1rem' }}>
         {Object.keys(chartMockData).map((item) => (
           <label 
-            data-testid={`legend-${item.toLowerCase()}`}
+            data-testid='legend-item'
             key={item} 
             style={{ marginRight: '1rem', color: chartColors[item as keyof typeof chartColors] }}
           >
