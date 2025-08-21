@@ -64,7 +64,7 @@ export function stringToRgb(rgbString: string): RgbaColor {
 /**
  * Finds the coordinates (x, y) of a target color within a given page or locator.
  * Supports searching within a specific element (locator) or the entire page.
- * @param options - Parameters for configuring the search and Playwright screenshot capture.
+ * @param options - Parameters for configuring the search.
  * @see FindColorCoordinatesOptions
  * @returns A promise resolving to the coordinates `{ x, y }` if the color is found, or `null` if not found.
  */
