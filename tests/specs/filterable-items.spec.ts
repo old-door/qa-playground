@@ -19,10 +19,6 @@ test.describe('Filterable items', () => {
     },
     {
       type: ItemsFilters.TYPE,
-      value: ['Clothing']
-    },
-    {
-      type: ItemsFilters.TYPE,
       value: ['Clothing', 'Electronics']
     },
   ]
